@@ -34,6 +34,13 @@ namespace Mirai_CSharp.Helpers
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.Method = "POST";
             request.Timeout = (int)(timeout * 1000);
+            request.KeepAlive = false;
+            request.ServicePoint.Expect100Continue = false;
+            request.ServicePoint.UseNagleAlgorithm = false;
+            request.ServicePoint.ConnectionLimit = 65500;
+            request.AllowWriteStreamBuffering = false;
+            request.Proxy = null;
+            request.ServicePoint.ConnectionLimit = int.MaxValue;
             request.UserAgent = userAgent ?? UserAgent;
             using (Stream stream = request.GetRequestStream()) // 没必要用Async, 这个Stream实际上是MemoryStream实现的,
                                                                // MemoryStream类下的异步方法都是调用对应的同步方法, 然后返回
