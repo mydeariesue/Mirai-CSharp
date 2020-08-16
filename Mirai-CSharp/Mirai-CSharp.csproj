@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;netstandard2.1</TargetFrameworks>
@@ -22,6 +22,7 @@
     <PublishDocumentationFile>true</PublishDocumentationFile>
     <PublishReferencesDocumentationFiles>true</PublishReferencesDocumentationFiles>
     <PackageTags>mirai-api-http mirai</PackageTags>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

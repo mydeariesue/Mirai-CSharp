@@ -20,10 +20,11 @@ namespace Epic_Bot.Helper
         /// <returns></returns>
         public static async Task<T> SendPostHttpRequest<T>(string Url, Dictionary<string, string> Data)
         {
+
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(Url);
-            var bs = TransferHttpData(Data);
+            var bs = TransferHttpData2(Data);
             req.Method = "POST";
-            req.ContentType = "application/x-www-form-urlencoded;charset=utf-8";
+            req.ContentType = "application/json;charset=utf-8";
             req.ContentLength = bs.Length;
             req.KeepAlive = false;
             req.ServicePoint.Expect100Continue = false;
@@ -32,11 +33,9 @@ namespace Epic_Bot.Helper
             req.AllowWriteStreamBuffering = false;
             req.Proxy = null;
             req.ServicePoint.ConnectionLimit = int.MaxValue;
-            using (Stream reqStream = req.GetRequestStream())
-            {
-                reqStream.Write(bs, 0, bs.Length);
-                reqStream.Close();
-            }
+            Stream reqStream = req.GetRequestStream();
+            reqStream.Write(bs, 0, bs.Length);
+            reqStream.Close();
             HttpWebResponse response = (HttpWebResponse)await req.GetResponseAsync();
             using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
             {
@@ -46,7 +45,46 @@ namespace Epic_Bot.Helper
                 req.Abort();
                 return result;
             };
+
         }
+
+        /// <summary>
+        /// put发送请求
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="Url"></param>
+        /// <param name="Data"></param>
+        /// <returns></returns>
+        public static async Task<T> SendPutHttpRequest<T>(string Url, Dictionary<string, string> Data)
+        {
+
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(Url);
+            var bs = TransferHttpData2(Data);
+            req.Method = "PUT";
+            req.ContentType = "application/json;charset=utf-8";
+            req.ContentLength = bs.Length;
+            req.KeepAlive = false;
+            req.ServicePoint.Expect100Continue = false;
+            req.ServicePoint.UseNagleAlgorithm = false;
+            req.ServicePoint.ConnectionLimit = 65500;
+            req.AllowWriteStreamBuffering = false;
+            req.Proxy = null;
+            req.ServicePoint.ConnectionLimit = int.MaxValue;
+            Stream reqStream = req.GetRequestStream();
+            reqStream.Write(bs, 0, bs.Length);
+            reqStream.Close();
+            HttpWebResponse response = (HttpWebResponse)await req.GetResponseAsync();
+            using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
+            {
+                var read = (await reader.ReadToEndAsync()).ToString();
+                var result = JsonConvert.DeserializeObject<T>(read);
+                response.Close();
+                req.Abort();
+                return result;
+            };
+
+        }
+
 
         /// <summary>
         /// GET发送请求
@@ -57,49 +95,28 @@ namespace Epic_Bot.Helper
         /// <returns></returns>
         public static async Task<T> SendGetHttpRequest<T>(string Url, Dictionary<string, string> Data)
         {
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(Url);
             var bs = TransferHttpDataToString(Data);
+            Url += "?" + bs;
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(Url);
             req.Method = "GET";
-            //req.ContentType = "application/x-www-form-urlencoded;charset=utf-8";
-            //req.ContentLength = bs.Length;
-            //req.KeepAlive = false;
-            //req.ServicePoint.Expect100Continue = false;
-            //req.ServicePoint.UseNagleAlgorithm = false;
-            //req.ServicePoint.ConnectionLimit = 65500;
-            //req.AllowWriteStreamBuffering = false;
-            //req.Proxy = null;
-            //req.ServicePoint.ConnectionLimit = int.MaxValue;
-            //using (Stream reqStream = req.GetRequestStream())
-            //{
-            //    reqStream.Write(bs, 0, bs.Length);
-            //    reqStream.Close();
-            //}
-            try
+            req.ContentType = "application/json;charset=utf-8";
+            req.KeepAlive = false;
+            req.ServicePoint.Expect100Continue = false;
+            req.ServicePoint.UseNagleAlgorithm = false;
+            req.ServicePoint.ConnectionLimit = 65500;
+            req.AllowWriteStreamBuffering = false;
+            req.Proxy = null;
+            req.ServicePoint.ConnectionLimit = int.MaxValue;
+           
+            HttpWebResponse response = (HttpWebResponse)await req.GetResponseAsync();
+            using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
             {
-                Url += "?" + bs;
-                HttpWebResponse response = (HttpWebResponse)await req.GetResponseAsync();
-                using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
-                {
-                    var read = (await reader.ReadToEndAsync()).ToString();
-                    var result = JsonConvert.DeserializeObject<T>(read);
-                    response.Close();
-                    req.Abort();
-                    return result;
-                };
-            }
-            catch (Exception ex)
-            {
-                Url += "?" + bs;
-                HttpWebResponse response = (HttpWebResponse)await req.GetResponseAsync();
-                using (StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8))
-                {
-                    var read = (await reader.ReadToEndAsync()).ToString();
-                    var result = JsonConvert.DeserializeObject<T>(read);
-                    response.Close();
-                    req.Abort();
-                    return result;
-                };
-            }
+                var read = (await reader.ReadToEndAsync()).ToString();
+                var result = JsonConvert.DeserializeObject<T>(read);
+                response.Close();
+                req.Abort();
+                return result;
+            };
         }
 
 
@@ -118,6 +135,13 @@ namespace Epic_Bot.Helper
                 i++;
             }
             byte[] bs = Encoding.UTF8.GetBytes(buffer.ToString());//UTF-8
+            return bs;
+        }
+
+        private static byte[] TransferHttpData2(Dictionary<string, string> input)
+        {
+            var json = JsonConvert.SerializeObject(input);
+            byte[] bs = Encoding.UTF8.GetBytes(json);//UTF-8
             return bs;
         }
 

@@ -34,8 +34,8 @@ namespace Epic_Bot
 
         List<ApiUrl> urls = new List<ApiUrl>()
         {
-            new ApiUrl(){Order = ".card", Type = "GET", Url = "api/services/app/V1_Card/SimulateCard"},
-            new ApiUrl(){Order = ".camp", Type = "POST", Url = "api/services/app/V1_Camp/GetCampingStr"},
+            new ApiUrl(){Order = ".card", Type = "POST", Url = "api/services/app/V1_Card/SimulateCard"},
+            new ApiUrl(){Order = ".camp", Type = "GET", Url = "api/services/app/V1_Camp/GetCampingStr"},
             new ApiUrl(){Order = ".help", Type = "GET", Url = "api/services/app/V1_Common/GetHelpInfos"},
             new ApiUrl(){Order = ".gvghelp", Type = "GET", Url = "api/services/app/V1_Common/GetGvgHelp"},
             new ApiUrl(){Order = ".camphelp", Type = "GET", Url = "api/services/app/V1_Common/GetCampHelp"},
@@ -68,11 +68,13 @@ namespace Epic_Bot
                    { "qq", e.Sender.Id.ToString() },
                 };
                 var result = new SimpleResult();
-                if(urldto.Type == "POST")
+                if (urldto.Type == "POST")
                     result = await HttpHelper.SendPostHttpRequest<SimpleResult>(url, values);
-                else
+                else if(urldto.Type == "GET")
                     result = await HttpHelper.SendGetHttpRequest<SimpleResult>(url, values);
-                
+                else if(urldto.Type == "PUT")
+                    result = await HttpHelper.SendPutHttpRequest<SimpleResult>(url, values);
+
                 IMessageBase[] chain = new IMessageBase[]
                 {
                     new PlainMessage(result.data.message)
@@ -128,7 +130,7 @@ namespace Epic_Bot
                 order = ".camphelp";
             if (message.StartsWith(".card") || message.StartsWith(".抽卡"))
                 order = ".card";
-            if (message.StartsWith(".露营") || message.StartsWith(".camp"))
+            if ((message.StartsWith(".露营") || message.StartsWith(".camp")) && message != ".camphelp")
                 order = ".camp";
             if (message.StartsWith(".hero") && !message.StartsWith(".heroname"))
                 order = ".hero";
