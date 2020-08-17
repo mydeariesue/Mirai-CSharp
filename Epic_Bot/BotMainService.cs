@@ -12,26 +12,8 @@ using System.Threading.Tasks;
 
 namespace Epic_Bot
 {
-    public class BotMainService : IGroupMessage, IGroupApply, INewFriendApply
+    public class BotMainService : IGroupMessage, IGroupApply, INewFriendApply, IBotInvitedJoinGroup, IFriendMessage
     {
-        //Dictionary<string, string> urls = new Dictionary<string, string>()
-        //{
-        //    [".card"] = "api/services/app/V1_Card/SimulateCard",
-        //    [".camp"] = "api/services/app/V1_Camp/GetCampingStr",
-        //    [".help"] = "api/services/app/V1_Common/GetHelpInfos",
-        //    [".gvghelp"] = "api/services/app/V1_Common/GetGvgHelp",
-        //    [".camphelp"] = "api/services/app/V1_Common/GetCampHelp",
-        //    [".hero"] = "api/services/app/V1_Common/QueryHeroList",
-        //    [".rename"] = "api/services/app/V1_Common/UpdateHeroAliasName",
-        //    [".heroname"] = "api/services/app/V1_Common/QueryHeroAliasName",
-        //    [".gvginfo"] = "api/services/app/V1_Gvg/GetGvgInfos",
-        //    [".sgvg"] = "api/services/app/V1_Gvg/UpdateGvgInfo",
-        //    [".exsgvg"] = "api/services/app/V1_Gvg/GetGvgExampleOrder",
-        //    [".guild"] = "api/services/app/V1_Gvg/UpdateGuildName",
-        //    [".battle"] = "api/services/app/V1_Gvg/UpdateBattleName",
-        //    [".permission"] = "api/services/app/V1_Common/GetPermission"
-        //};
-
         List<ApiUrl> urls = new List<ApiUrl>()
         {
             new ApiUrl(){Order = ".card", Type = "POST", Url = "api/services/app/V1_Card/SimulateCard"},
@@ -54,7 +36,7 @@ namespace Epic_Bot
         public async Task<bool> GroupMessage(MiraiHttpSession session, IGroupMessageEventArgs e)
         {
             var apiAddress = AppSettingHelper.GetSettingValue("ApiAddress");
-            var message = e.Chain[1].ToString();
+            var message = e.Chain[1].ToString().TrimEnd().TrimStart();
 
             var urldto = GetUrlAndMessage(message);
             if (urldto != null)
@@ -70,9 +52,9 @@ namespace Epic_Bot
                 var result = new SimpleResult();
                 if (urldto.Type == "POST")
                     result = await HttpHelper.SendPostHttpRequest<SimpleResult>(url, values);
-                else if(urldto.Type == "GET")
+                else if (urldto.Type == "GET")
                     result = await HttpHelper.SendGetHttpRequest<SimpleResult>(url, values);
-                else if(urldto.Type == "PUT")
+                else if (urldto.Type == "PUT")
                     result = await HttpHelper.SendPutHttpRequest<SimpleResult>(url, values);
 
                 IMessageBase[] chain = new IMessageBase[]
@@ -84,6 +66,23 @@ namespace Epic_Bot
             return false;
         }
 
+        public async Task<bool> FriendMessage(MiraiHttpSession session, IFriendMessageEventArgs e)
+        {
+            IMessageBase[] chain = new IMessageBase[]
+            {
+               e.Chain[1]              
+            };
+            if (e.Sender.Id == 330036841)
+            {
+                var groups = await session.GetGroupListAsync();
+                foreach(var a in groups)
+                {
+                    await session.SendGroupMessageAsync(a.Id, chain);
+                }
+            }
+            return false; // 不阻断消息传递。如需阻断请返回true
+        }
+
         /// <summary>
         /// 邀请群，暂时不做权限控制
         /// </summary>
@@ -91,6 +90,12 @@ namespace Epic_Bot
         /// <param name="e"></param>
         /// <returns></returns>
         public async Task<bool> GroupApply(MiraiHttpSession session, IGroupApplyEventArgs e)
+        {
+            await session.HandleGroupApplyAsync(e, GroupApplyActions.Allow, "略略略");
+            return false;
+        }
+
+        public async Task<bool> BotInvitedJoinGroup(MiraiHttpSession session, IBotInvitedJoinGroupEventArgs e)
         {
             await session.HandleGroupApplyAsync(e, GroupApplyActions.Allow, "略略略");
             return false;
@@ -149,13 +154,9 @@ namespace Epic_Bot
             if (message.StartsWith(".battle"))
                 order = ".battle";
             var mes = GetSendMessage(message, order);
-            //if (!string.IsNullOrEmpty(mes))
-            //{
             var url = urls.FirstOrDefault(x => x.Order == order);
             var result = new UrlDto() { Url = url.Url, Message = mes, Type = url.Type };
             return result;
-            //}
-            return null;
         }
 
 

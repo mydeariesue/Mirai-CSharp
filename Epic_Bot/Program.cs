@@ -14,7 +14,7 @@ namespace Epic_Bot
             BotMainService service = new BotMainService();
             session.AddPlugin(service);
             // 使用上边提供的信息异步连接到 mirai-api-http
-            await session.ConnectAsync(options, 2904439213); // 自己填机器人QQ号
+            await session.ConnectAsync(options, 2795354785); // 自己填机器人QQ号
             while (true)
             {
                 if (await Console.In.ReadLineAsync() == "exit")
