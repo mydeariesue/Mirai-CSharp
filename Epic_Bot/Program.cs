@@ -9,7 +9,7 @@ namespace Epic_Bot
     {
         public static async Task Main(string[] args)
         {
-            MiraiHttpSessionOptions options = new MiraiHttpSessionOptions("127.0.0.1", 30000, "1234567890");
+            MiraiHttpSessionOptions options = new MiraiHttpSessionOptions("119.45.58.76", 30000, "1234567890");
             await using MiraiHttpSession session = new MiraiHttpSession();
             BotMainService service = new BotMainService();
             session.AddPlugin(service);
